@@ -284,11 +284,12 @@ function App() {
   const handleGlideDistanceChange = (value: number) => {
     if (!image.element) return;
     const img = image.element;
+    const baseLength = Math.max(image.width ?? 0, image.height ?? 0);
     setProofState((prev) => {
       if (prev.type !== 'glide' || !prev.patchSample || !prev.line) {
         return prev;
       }
-      const distancePx = value * (prev.patchSample.size / 2);
+      const distancePx = value * baseLength;
       const after = glidePatch(prev.patchSample, prev.line, distancePx, img);
       return {
         ...prev,
@@ -318,7 +319,8 @@ function App() {
         const reflected = reflectPatch(patch, prev.line, img);
         return { ...prev, before: patch.data, after: reflected, patchSample: patch, patchSize: size };
       }
-      const distancePx = prev.distance * (patch.size / 2);
+      const baseLength = Math.max(image.width ?? 0, image.height ?? 0);
+      const distancePx = prev.distance * baseLength;
       const glided = glidePatch(patch, prev.line, distancePx, img);
       return { ...prev, before: patch.data, after: glided, patchSample: patch, patchSize: size };
     }
