@@ -1,73 +1,41 @@
-# React + TypeScript + Vite
+# Wallpaper Symmetry Lab
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A guided classifier for wallpaper and frieze patterns. Upload a motif, answer the prompts from the decision tree, and "prove" each answer with a tiny geometric action directly on the canvas—placing rotation dots or drawing mirror / glide lines. The app extracts a small patch, applies the requested transformation, and shows a before/after comparison so you can visually confirm every step before moving on.
 
-Currently, two official plugins are available:
+## Highlights
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **Single-page workflow** – Top bar for upload/reset, left pane for the interactive canvas, right pane for the active question and proof controls.
+- **Question-driven tree** – The entire experience is backed by a JSON decision tree (`src/decisionTree.ts`). Each node declares its answers, the next node, and the proof type that should be demonstrated.
+- **Proof widgets** – Rotation answers require a click to place a center; mirror/glide answers require drawing a line; glides add a slider to adjust the slide distance. Every action updates the preview immediately.
+- **Before / After preview** – The right pane always shows the sampled patch next to the transformed canvas so you can see whether the symmetry actually holds before you confirm.
+- **Backtracking support** – You can back up to any previous question or restart the entire flow without re-uploading the image.
 
-## React Compiler
+## Getting started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Then open [http://localhost:5173](http://localhost:5173) in your browser. For a production build run `npm run build` and preview it with `npm run preview`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Using the classifier
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+1. Click **Upload image** and select a repeating wallpaper/frieze photo.
+2. The app loads the decision tree and shows the first question. Pick an answer to reveal the corresponding proof instructions.
+3. **Prove it**:
+   - Rotations: click a point where the specified rotation should hold.
+   - Mirrors: click and drag to draw the mirror axis.
+   - Glides: draw the axis, then fine‑tune the slide distance with the slider.
+4. Watch the **Before / After** patch to see if the transformation lines up. If it does, press _“Yes, looks right → Continue”_. If not, change your answer or redo the proof.
+5. Follow the tree until you reach a leaf node—the final wallpaper group label and description.
+
+## Project structure
+
+- `src/App.tsx` – Main page shell, state machine, and navigation logic.
+- `src/decisionTree.ts` – The JSON-like definition of the classifier tree. Update this file to tweak copy or add new branches.
+- `src/components/` – Small presentational helpers (`ImagePane`, `ProofControls`, `BeforeAfterPreview`).
+- `src/utils/imageTools.ts` – Patch extraction plus rotation/mirror/glide transforms used by the proof widgets.
+- `src/types.ts` – Shared TypeScript interfaces for the tree, proof state, and geometry primitives.
+
+No external UI frameworks are used—the layout and overlays are handcrafted in CSS/SVG and stay responsive from narrow screens to wide desktops.
