@@ -193,13 +193,14 @@ function App() {
   useEffect(() => {
     if (
       selectedAnswerKey &&
-      proofState.type === 'none' &&
       currentNode &&
-      currentNode.type === 'question'
+      currentNode.type === 'question' &&
+      (currentNode.proofType ?? currentNode.answers.find((a) => a.key === selectedAnswerKey)?.proofType ?? 'none') === 'none'
     ) {
-      handleConfirmAnswer();
+      autoAdvance();
     }
-  }, [proofState.type, selectedAnswerKey, currentNode]);
+  }, [selectedAnswerKey, currentNode]);
+
 
   useEffect(() => {
     if (!selectedAnswerKey) return;
@@ -350,9 +351,9 @@ function App() {
     setProofState(createProofState('none'));
   };
 
-  const handleConfirmAnswer = () => {
+  const autoAdvance = () => {
     if (!currentNode || currentNode.type !== 'question') return;
-    if (!selectedAnswerKey || !proofState.ready) return;
+    if (!selectedAnswerKey) return;
     const answer = currentNode.answers.find((candidate) => candidate.key === selectedAnswerKey);
     if (!answer) return;
     setHistory((prev) => [...prev, { nodeId: currentNode.id, selectedAnswerKey }]);
@@ -370,11 +371,12 @@ function App() {
       if (prev.length === 0) return prev;
       const nextHistory = [...prev];
       const last = nextHistory.pop()!;
-      setCurrentNodeId(last.nodeId);
+      const targetNodeId = last.nodeId;
+      setCurrentNodeId(targetNodeId);
       setSelectedAnswerKey(last.selectedAnswerKey);
-      const node = decisionTree.nodes[last.nodeId];
+      const node = decisionTree.nodes[targetNodeId];
       if (node && node.type === 'question' && last.selectedAnswerKey) {
-        const storedDraft = (draftStore[last.nodeId] ?? {})[last.selectedAnswerKey];
+        const storedDraft = (draftStore[targetNodeId] ?? {})[last.selectedAnswerKey];
         if (storedDraft) {
           setProofState(storedDraft);
         } else {
@@ -450,24 +452,26 @@ function App() {
         <div className="proof-card">
           {selectedAnswerKey ? (
             <>
-            <ProofControls
-              proofState={proofState}
-              activeProofType={proofState.type}
-              interactionsEnabled={proofInteractionsEnabled}
-              onGlideDistanceChange={handleGlideDistanceChange}
-              onRotationRepeatChange={handleRotationRepeatChange}
-              onPatchSizeChange={handlePatchSizeChange}
-              patchSizeLimits={patchSizeLimits}
-              glideMaxDistance={image.width && proofState.patchSample ? (image.width / proofState.patchSample.size) : 1}
-              onResetProof={handleResetProof}
-            />
+              <ProofControls
+                proofState={proofState}
+                activeProofType={proofState.type}
+                interactionsEnabled={proofInteractionsEnabled}
+                onGlideDistanceChange={handleGlideDistanceChange}
+                onRotationRepeatChange={handleRotationRepeatChange}
+                onPatchSizeChange={handlePatchSizeChange}
+                patchSizeLimits={patchSizeLimits}
+                glideMaxDistance={
+                  image.width && proofState.patchSample ? image.width / proofState.patchSample.size : 1
+                }
+                onResetProof={handleResetProof}
+              />
               <BeforeAfterPreview before={proofState.before} after={proofState.after} />
               <div className="proof-actions">
                 <button
                   type="button"
                   className="primary"
-                  onClick={handleConfirmAnswer}
                   disabled={!proofState.ready}
+                  onClick={autoAdvance}
                 >
                   Looks right → Continue
                 </button>
@@ -495,7 +499,7 @@ function App() {
     <div className="app-shell">
       <header className="top-bar">
         <div className="top-bar__content">
-          <h1>Wallpaper Symmetry Lab</h1>
+          <h1>ISCI 312 Wallpaper Lab</h1>
           <div className="top-bar__actions">
             <button type="button" className="primary" onClick={handleUploadClick}>
               Upload image
